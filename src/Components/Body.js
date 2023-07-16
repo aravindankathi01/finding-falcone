@@ -3,16 +3,17 @@ import Dropdown from "./Dropdown";
 import { Link } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { saveResult } from "../utils/SaveResult";
+import { useSnackbar } from "notistack";
+import Shimmer from "./Shimmer";
 
 const Body = () => {
-  const [isReset,setIsReset] = useState(false)
+  const [isReset, setIsReset] = useState(false);
   const [planetsData, setPlanetsData] = useState([]);
   const [vehiclesData, setVehiclesData] = useState([]);
   const [selectedVehicles, setSelectedVehicles] = useState([]);
-  const [filteredVehicles, setFilteredVehicles] = useState([]);
-  const [selectedData, setSelectedData] = useState([]);
+  const [selectedPlanets, setSelectedPlanets] = useState([]);
   const [time, setTime] = useState(0);
-  const [options, setOptions] = useState({
+  const [planetsOptions, setPlanetsOptions] = useState({
     "1": [],
     "2": [],
     "3": [],
@@ -25,6 +26,7 @@ const Body = () => {
     "4": []
   });
 
+  const { enqueueSnackbar } = useSnackbar();
   const dispatch = useDispatch();
 
   useEffect(() => {
@@ -36,11 +38,12 @@ const Body = () => {
   }, []);
 
   useEffect(() => {
-    if (selectedData.length === selectedVehicles.length) {
-      timeTaken(selectedData, selectedVehicles);
+    if (selectedPlanets.length === selectedVehicles.length) {
+      timeTaken(selectedPlanets, selectedVehicles);
       // console.log(time);
     }
-  }, [selectedVehicles, selectedData]);
+    // console.log(selectedVehicles);
+  }, [selectedVehicles, selectedPlanets]);
 
   function timeTaken(planets, vehicles) {
     // console.log(">time taken", planets, vehicles);
@@ -64,7 +67,6 @@ const Body = () => {
       return vehicle;
     });
 
-    setFilteredVehicles(updatedFilteredVehicles);
     setVehiclesOptions({
       ...vehiclesOptions,
       [ke]: updatedFilteredVehicles,
@@ -75,24 +77,31 @@ const Body = () => {
   function handleChange(event, ke) {
     const { value } = event.target;
     const selected = planetsData.filter((item) => value === item.name);
-    setSelectedData([...selectedData, selected[0]]);
-    
-    let left = options[ke].filter((item) => {
+
+    if (selectedPlanets.length === selectedVehicles.length + 1) {
+      selectedPlanets.pop();
+      setSelectedPlanets([...selectedPlanets, selected[0]]);
+    } else if (selectedPlanets.length === selectedVehicles.length) {
+      setSelectedPlanets([...selectedPlanets, selected[0]]);
+    }
+
+    let left = planetsOptions[ke].filter((item) => {
       return item.name !== value;
     });
-    setOptions({ ...options, [ke + 1]: left });
-    isReset&&setVehiclesOptions({
-      "1": vehiclesData,
-      "2": [],
-      "3": [],
-      "4": []
-    })
-    console.log(">>isReset",isReset)
-    setIsReset(false)
+    setPlanetsOptions({ ...planetsOptions, [ke + 1]: left });
+    isReset &&
+      setVehiclesOptions({
+        "1": vehiclesData,
+        "2": [],
+        "3": [],
+        "4": []
+      });
+    // console.log(">>isReset",isReset)
+    setIsReset(false);
   }
 
   function validation() {
-    if (selectedData.length === 4 && selectedVehicles.length === 4) {
+    if (selectedPlanets.length === 4 && selectedVehicles.length === 4) {
       return true;
     }
     return false;
@@ -101,7 +110,7 @@ const Body = () => {
   async function postData() {
     if (validation()) {
       try {
-        const planets = selectedData.map((item) => item.name);
+        const planets = selectedPlanets.map((item) => item.name);
         const vehicles = selectedVehicles.map((item) => item.name);
         const tokendummy = await getToken();
         const body = {
@@ -132,8 +141,12 @@ const Body = () => {
         return null;
       }
     } else {
-      console.log(
-        "To move further please select all destinations and respective vehicles avaliable"
+      // console.log(
+      //   "To move further please select all destinations and respective vehicles available"
+      // );
+      enqueueSnackbar(
+        "To move further please select all destinations and respective vehicles available",
+        { variant: "warning" }
       );
     }
   }
@@ -149,7 +162,7 @@ const Body = () => {
 
       if (response.ok) {
         const data = await response.json();
-        console.log(">>> token", data);
+        // console.log(">>> token", data);
         return data;
       } else {
         console.log("Request failed with status:", response.status);
@@ -165,7 +178,7 @@ const Body = () => {
       const response = await fetch("https://findfalcone.geektrust.com/planets");
       const data = await response.json();
       setPlanetsData(data);
-      setOptions({ ...options, "1": data });
+      setPlanetsOptions({ ...planetsOptions, "1": data });
       return data;
     } catch (error) {
       console.log("API Failure");
@@ -180,7 +193,6 @@ const Body = () => {
       );
       const data = await response.json();
       setVehiclesData(data);
-      setFilteredVehicles(data);
       setVehiclesOptions({ ...vehiclesOptions, "1": data });
       return data;
     } catch (error) {
@@ -189,64 +201,68 @@ const Body = () => {
     }
   }
 
-  if (planetsData.length === 0) return null;
+  if (planetsData.length === 0) return <Shimmer />;
 
   const dropdowns = Array.from({ length: 4 }, (_, index) => (
     <Dropdown
       key={index + 1}
       ke={index + 1}
-      data={options[index + 1]}
+      data={planetsOptions[index + 1]}
       handleData={handleChange}
       vehicles={vehiclesOptions[index + 1]}
       handleVehicles={handleVehiclesData}
       isReset={isReset}
+      selectedVehicles={selectedVehicles}
+      selectedData={selectedPlanets}
     />
   ));
 
   return (
     <>
       <div className="flex justify-center items-center w-screen my-10">
-        <h2 className="text-2xl text-slate-800">
+        <h2 className="text-2xl text-slate-800 text-center p-2">
           Select planets you want to search in:
         </h2>
       </div>
-      <div className="flex justify-end mx-12">
+      <div className="flex justify-center my-8">
         <button
-          className="font-semibold text-3xl rounded-full p-2 bg-gradient-to-r from-black to-white text-white shadow-2xl"
+          className="font-semibold text-3xl rounded-md p-2 bg-gradient-to-r from-slate-700 to-white text-white shadow-2xl"
           onClick={() => {
             setSelectedVehicles([]);
-            setSelectedData([]);
+            setSelectedPlanets([]);
             setVehiclesOptions({
               "1": [],
               "2": [],
               "3": [],
               "4": []
             });
-            setOptions({
+            setPlanetsOptions({
               "1": planetsData,
               "2": [],
               "3": [],
               "4": []
             });
-            setIsReset(true)
+            setIsReset(true);
           }}
         >
           Reset
         </button>
       </div>
 
-      <div className="flex justify-center items-center w-screen my-2 gap-10">
-        {dropdowns}
+      <div className="flex justify-center">
+        <div className="grid md:grid-cols-4 grid-cols-2 gap-3 md:gap:5 w-auto h-auto">
+          {dropdowns}
+        </div>
       </div>
 
-      <h1 className="text-3xl font-semibold text-slate-800 flex justify-end mx-12">
+      <h1 className="text-3xl font-semibold text-slate-800 flex justify-center mb-6">
         Time taken: {time}
       </h1>
 
-      <div className="flex justify-center items-center w-screen my-20">
+      <div className="flex justify-center items-center w-screen">
         <Link
           to={validation() && "/results"}
-          className="font-semibold text-3xl rounded-full p-2 bg-gradient-to-r from-black to-white text-white shadow-2xl"
+          className="font-semibold text-3xl rounded-md p-2 bg-gradient-to-r from-slate-700 to-white text-white shadow-2xl"
           onClick={postData}
         >
           Find Falcone
