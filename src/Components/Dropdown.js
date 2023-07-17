@@ -9,88 +9,72 @@ const Dropdown = ({
   handleVehicles,
   isReset,
   selectedVehicles,
-  selectedData
+  selectedData,
+  planetsOptions,
+  vehiclesOptions
 }) => {
-  const [vehiclesHidden, setVehiclesHidden] = useState({
-    "1": false,
-    "2": false,
-    "3": false,
-    "4": false
-  });
-  const [selectedPlanet, setSelectedPlanet] = useState({
-    "1": [],
-    "2": [],
-    "3": [],
-    "4": []
-  });
+  const [vehiclesHidden, setVehiclesHidden] = useState(false);
+  const [selectedPlanet, setSelectedPlanet] = useState(null);
+  const [filteredVehicles, setFilteredVehicles] = useState(vehicles);
 
   useEffect(() => {
     if (isReset) {
-      setSelectedPlanet((prevSelectedPlanet) => ({
-        "1": [],
-        "2": [],
-        "3": [],
-        "4": []
-      }));
-      setVehiclesHidden({
-        "1": false,
-        "2": false,
-        "3": false,
-        "4": false
-      });
+      setSelectedPlanet(null);
+      setVehiclesHidden(false);
     }
   }, [isReset]);
 
-  const {enqueueSnackbar} = useSnackbar()
+  const { enqueueSnackbar } = useSnackbar();
 
   const handleDropdownChange = (event) => {
     handleData(event, ke);
     const dict = data.filter((item) => item.name === event.target.value);
-    setSelectedPlanet((prevSelectedPlanet) => ({
-      ...prevSelectedPlanet,
-      [ke]: dict[0]
-    }));
-    setVehiclesHidden({ ...vehiclesHidden, [ke]: true });
+    setSelectedPlanet(dict[0]);
+    setVehiclesHidden(true);
   };
+
+  const handleVehicleChange = (event) => {
+    if (selectedData.length === selectedVehicles.length + 1) {
+      handleVehicles(event, ke);
+    } else {
+      enqueueSnackbar(
+        "User is not allowed to move to same planet twice",
+        { variant: "warning" }
+      );
+    }
+  };
+
+  useEffect(() => {
+    setFilteredVehicles(vehiclesOptions[ke] || []);
+  }, [vehiclesOptions, ke]);
 
   return (
     <div className="box-border h-60 w-36">
-      <div>
-        <label
-          htmlFor={`Destination-${ke}`}
-          className="flex justify-center items-center text-slate-950 font-semibold"
-        >
-          Destination-{ke}
-        </label>
-        <select
-          name={`Destination-${ke}`}
-          id={`Destination-${ke}`}
-          onChange={handleDropdownChange}
-          className="p-2 mx-5 text-slate-600 font-medium"
-        >
-          <option value="">Select</option>
-          {data.map((item, ind) => {
-            return (
-              <option
-                key={ind}
-                value={item.name}
-                className="text-slate-700 font-medium"
-              >
-                {item.name}
-              </option>
-            );
-          })}
-        </select>
-      </div>
+      <select
+        name={`Destination-${ke}`}
+        id={`Destination-${ke}`}
+        onChange={handleDropdownChange}
+        className="p-2 my-2 text-slate-600 font-medium w-32"
+      >
+        <option value="">Select</option>
+        {data.map((item, ind) => (
+          <option
+            key={ind}
+            value={item.name}
+            className="text-slate-700 font-medium"
+          >
+            {item.name}
+          </option>
+        ))}
+      </select>
 
-      {vehiclesHidden[ke] && (
+      {vehiclesHidden && (
         <div className="px-1" style={{ whiteSpace: "nowrap" }}>
           <label htmlFor={`Vehicle-${ke}`} className="mr-2"></label>
-          {vehicles.map((vehicle, index) => {
+          {filteredVehicles.map((vehicle, index) => {
             const isOptionDisabled = vehicle.total_no === 0;
             const isDistanceValid =
-              selectedPlanet[ke].name.length &&
-              vehicle.max_distance >= selectedPlanet[ke].distance;
+              selectedPlanet && vehicle.max_distance >= selectedPlanet.distance;
 
             return (
               isDistanceValid && (
@@ -100,19 +84,13 @@ const Dropdown = ({
                     id={`Destination-${ke}-${vehicle.name}`}
                     name={`Destination-${ke}`}
                     value={vehicle.name}
-                    onChange={(event) => {
-                      if (selectedData.length === selectedVehicles.length + 1) {
-                        handleVehicles(event, ke);
-                      } else {
-                        enqueueSnackbar('User is not allowed to move to same planet twice', { variant: 'warning' });
-                      }
-                    }}
+                    onChange={handleVehicleChange}
                     disabled={isOptionDisabled}
                   />
                   <label
                     htmlFor={`Destination-${ke}-${vehicle.name}`}
                     className={`ml-2 font-semibold ${
-                      isOptionDisabled ? "text-slate-300" : " text-slate-700"
+                      isOptionDisabled ? "text-slate-300" : "text-slate-700"
                     }`}
                   >
                     {vehicle.name + " " + vehicle.total_no}

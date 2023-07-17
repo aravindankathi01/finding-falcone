@@ -131,14 +131,17 @@ const Body = () => {
         if (response.ok) {
           let data = await response.json();
           // console.log(data)
-          data = { ...data, time_taken: { time } };
-          dispatch(saveResult(data));
+          if (data.status === "success") {
+            data = { ...data, time_taken: { time } };
+            dispatch(saveResult(data));
+          }
         } else {
-          console.log("Request failed with status:", response.status);
+          console.log("Request failed", response.status);
         }
       } catch (error) {
         console.log("API Failure:", error.message);
-        return null;
+      enqueueSnackbar(error.message, { variant: 'error' });
+      return null;
       }
     } else {
       // console.log(
@@ -169,6 +172,7 @@ const Body = () => {
       }
     } catch (error) {
       console.log("API Failure:", error.message);
+      enqueueSnackbar(error.message, { variant: 'error' });
       return null;
     }
   }
@@ -181,7 +185,8 @@ const Body = () => {
       setPlanetsOptions({ ...planetsOptions, "1": data });
       return data;
     } catch (error) {
-      console.log("API Failure");
+      console.log("API Failure:", error.message);
+      enqueueSnackbar(error.message, { variant: 'error' });
       return null;
     }
   }
@@ -196,7 +201,8 @@ const Body = () => {
       setVehiclesOptions({ ...vehiclesOptions, "1": data });
       return data;
     } catch (error) {
-      console.log("API Failure");
+      console.log("API Failure:", error.message);
+      enqueueSnackbar(error.message, { variant: 'error' });
       return null;
     }
   }
@@ -214,6 +220,8 @@ const Body = () => {
       isReset={isReset}
       selectedVehicles={selectedVehicles}
       selectedData={selectedPlanets}
+      planetsOptions={planetsOptions}
+    vehiclesOptions={vehiclesOptions}
     />
   ));
 
