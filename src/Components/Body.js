@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from "react";
 import Dropdown from "./Dropdown";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { saveResult } from "../utils/SaveResult";
 import { useSnackbar } from "notistack";
 import Shimmer from "./Shimmer";
 
 const Body = () => {
+  const navigate = useNavigate();
   const [isReset, setIsReset] = useState(false);
   const [planetsData, setPlanetsData] = useState([]);
   const [vehiclesData, setVehiclesData] = useState([]);
@@ -14,16 +15,16 @@ const Body = () => {
   const [selectedPlanets, setSelectedPlanets] = useState([]);
   const [time, setTime] = useState(0);
   const [planetsOptions, setPlanetsOptions] = useState({
-    "1": [],
-    "2": [],
-    "3": [],
-    "4": []
+    1: [],
+    2: [],
+    3: [],
+    4: [],
   });
   const [vehiclesOptions, setVehiclesOptions] = useState({
-    "1": [],
-    "2": [],
-    "3": [],
-    "4": []
+    1: [],
+    2: [],
+    3: [],
+    4: [],
   });
 
   const { enqueueSnackbar } = useSnackbar();
@@ -70,7 +71,7 @@ const Body = () => {
     setVehiclesOptions({
       ...vehiclesOptions,
       [ke]: updatedFilteredVehicles,
-      [ke + 1]: updatedFilteredVehicles
+      [ke + 1]: updatedFilteredVehicles,
     });
   }
 
@@ -91,10 +92,10 @@ const Body = () => {
     setPlanetsOptions({ ...planetsOptions, [ke + 1]: left });
     isReset &&
       setVehiclesOptions({
-        "1": vehiclesData,
-        "2": [],
-        "3": [],
-        "4": []
+        1: vehiclesData,
+        2: [],
+        3: [],
+        4: [],
       });
     // console.log(">>isReset",isReset)
     setIsReset(false);
@@ -116,16 +117,16 @@ const Body = () => {
         const body = {
           token: tokendummy.token,
           planet_names: planets,
-          vehicle_names: vehicles
+          vehicle_names: vehicles,
         };
 
         const response = await fetch("https://findfalcone.geektrust.com/find", {
           method: "POST",
           headers: {
             Accept: "application/json",
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
           },
-          body: JSON.stringify(body)
+          body: JSON.stringify(body),
         });
 
         if (response.ok) {
@@ -140,8 +141,8 @@ const Body = () => {
         }
       } catch (error) {
         console.log("API Failure:", error.message);
-      enqueueSnackbar(error.message, { variant: 'error' });
-      return null;
+        enqueueSnackbar(error.message, { variant: "error" });
+        return null;
       }
     } else {
       // console.log(
@@ -159,8 +160,8 @@ const Body = () => {
       const response = await fetch("https://findfalcone.geektrust.com/token", {
         method: "POST",
         headers: {
-          Accept: "application/json"
-        }
+          Accept: "application/json",
+        },
       });
 
       if (response.ok) {
@@ -172,7 +173,7 @@ const Body = () => {
       }
     } catch (error) {
       console.log("API Failure:", error.message);
-      enqueueSnackbar(error.message, { variant: 'error' });
+      enqueueSnackbar(error.message, { variant: "error" });
       return null;
     }
   }
@@ -182,11 +183,11 @@ const Body = () => {
       const response = await fetch("https://findfalcone.geektrust.com/planets");
       const data = await response.json();
       setPlanetsData(data);
-      setPlanetsOptions({ ...planetsOptions, "1": data });
+      setPlanetsOptions({ ...planetsOptions, 1: data });
       return data;
     } catch (error) {
       console.log("API Failure:", error.message);
-      enqueueSnackbar(error.message, { variant: 'error' });
+      enqueueSnackbar(error.message, { variant: "error" });
       return null;
     }
   }
@@ -198,11 +199,11 @@ const Body = () => {
       );
       const data = await response.json();
       setVehiclesData(data);
-      setVehiclesOptions({ ...vehiclesOptions, "1": data });
+      setVehiclesOptions({ ...vehiclesOptions, 1: data });
       return data;
     } catch (error) {
       console.log("API Failure:", error.message);
-      enqueueSnackbar(error.message, { variant: 'error' });
+      enqueueSnackbar(error.message, { variant: "error" });
       return null;
     }
   }
@@ -221,60 +222,61 @@ const Body = () => {
       selectedVehicles={selectedVehicles}
       selectedData={selectedPlanets}
       planetsOptions={planetsOptions}
-    vehiclesOptions={vehiclesOptions}
+      vehiclesOptions={vehiclesOptions}
     />
   ));
 
   return (
     <>
-      <div className="flex justify-center items-center w-screen my-10">
-        <h2 className="text-2xl text-slate-800 text-center p-2">
+      <div className='flex justify-center items-center w-screen my-10'>
+        <h2 className='text-2xl text-slate-800 text-center p-2'>
           Select planets you want to search in:
         </h2>
       </div>
-      <div className="flex justify-center my-8">
+      <div className='flex justify-center my-8'>
         <button
-          className="font-semibold text-3xl rounded-md p-2 bg-gradient-to-r from-slate-700 to-white text-white shadow-2xl"
+          className='font-semibold text-3xl rounded-md p-2 bg-gradient-to-r from-slate-700 to-white text-white shadow-2xl'
           onClick={() => {
             setSelectedVehicles([]);
             setSelectedPlanets([]);
             setVehiclesOptions({
-              "1": [],
-              "2": [],
-              "3": [],
-              "4": []
+              1: [],
+              2: [],
+              3: [],
+              4: [],
             });
             setPlanetsOptions({
-              "1": planetsData,
-              "2": [],
-              "3": [],
-              "4": []
+              1: planetsData,
+              2: [],
+              3: [],
+              4: [],
             });
             setIsReset(true);
-          }}
-        >
+          }}>
           Reset
         </button>
       </div>
 
-      <div className="flex justify-center">
-        <div className="grid md:grid-cols-4 grid-cols-2 gap-3 md:gap:5 w-auto h-auto">
+      <div className='flex justify-center'>
+        <div className='grid md:grid-cols-4 grid-cols-2 gap-3 md:gap:5 w-auto h-auto'>
           {dropdowns}
         </div>
       </div>
 
-      <h1 className="text-3xl font-semibold text-slate-800 flex justify-center mb-6">
+      <h1 className='text-3xl font-semibold text-slate-800 flex justify-center mb-6'>
         Time taken: {time}
       </h1>
 
-      <div className="flex justify-center items-center w-screen">
-        <Link
-          to={validation() && "/results"}
-          className="font-semibold text-3xl rounded-md p-2 bg-gradient-to-r from-slate-700 to-white text-white shadow-2xl"
-          onClick={postData}
-        >
+      <div className='flex justify-center items-center w-screen'>
+        <div
+          // to={validation() && "/results"}
+          className='font-semibold text-3xl rounded-md p-2 bg-gradient-to-r from-slate-700 to-white text-white shadow-2xl'
+          onClick={() => {
+            postData();
+            validation && navigate("/results");
+          }}>
           Find Falcone
-        </Link>
+        </div>
       </div>
     </>
   );
