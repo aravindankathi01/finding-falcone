@@ -273,7 +273,7 @@ const Body = () => {
           className='font-semibold text-3xl rounded-md p-2 bg-gradient-to-r from-slate-700 to-white text-white shadow-2xl'
           onClick={() => {
             postData();
-            validation && navigate("/results");
+            validation && navigate("results");
           }}>
           Find Falcone
         </div>
